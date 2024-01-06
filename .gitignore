@@ -1,0 +1,6 @@
+node_modules/
+.env
+.vscode
+debug.log
+.dbinfo.*.js
+database/mysql.js
