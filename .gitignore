@@ -1,4 +1,4 @@
 .env
 .git
-.dbinfo.*.js
+dbinfos.*.js
 database/mysql.js
