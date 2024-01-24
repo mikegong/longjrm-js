@@ -7,13 +7,21 @@ import { config, dbInfos } from '../load-config.js';
 
 const mysqlDbName = "mysql-test";
 const postgresDbName = "postgres-test";
-const databaseName = postgresDbName;
+const mongoDbName = "mongodb-test";
+const databaseName = mongoDbName;
 const dbInfo = dbInfos[databaseName];
 
 const dbConnection = new DatabaseConnection(dbInfo);
 
 try {
-    await dbConnection.connect();
+    const conn = await dbConnection.connect();
+    if (conn.databaseType = 'mongodb+srv') {
+        const database = conn.db('test')
+        const listings = database.collection('Listing');
+        const query = { title: 'Nice Cottage' };
+        const cottage = await listings.findOne(query);
+        console.log(cottage);
+    }
 } catch (error) {
     console.error(error);
 }

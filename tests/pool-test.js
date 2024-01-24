@@ -3,7 +3,8 @@ import Db from "../database/db.js";
 
 const mysqlDbName = "mysql-test";
 const postgresDbName = "postgres-test";
-const databaseName = postgresDbName;
+const mongoDbName = "mongodb-test";
+const databaseName = mysqlDbName;
 
 const dbConnectionPool = new DatabaseConnectionPool();
 
@@ -17,21 +18,36 @@ try {
 }
 
 let connection = null;
+let result = null;
 
 try {
     connection = await dbConnectionPool.getConnection(databaseName);
     const db = new Db(connection);
-    const result = await db.select({
-        table: "sample",
-        columns: ["*"],
-        where: [{
-            "c2": {
-                "operator": "=",
-                "value": "1",
-                "placeholder": "Y"
-            }
-        }]
-    });
+    if (databaseName === mongoDbName) {
+        result = await db.select({
+            table: "Listing",
+            where: {guestCount: 4, roomCount: 2}
+        });
+    } else {
+        result = await db.select({
+            table: "sample",
+            columns: ["*"],
+            // where: [{
+            //     "c2": "1"
+            // }]
+            // where: [{
+            //     "c2": {">=": "2", "<": "3"}
+            // }]
+            where: [{
+                "c2": {
+                    "operator": "=",
+                    "value": 1,
+                    "placeholder": "Y"
+                }
+            }]
+        });
+    }
+
     console.log(result.data);
     await dbConnectionPool.releaseConnection(databaseName, connection);
     console.log('Connection released');

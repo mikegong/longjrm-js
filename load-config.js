@@ -7,10 +7,10 @@ let config;
 let dbInfos;
 
 try {
-  const configModule = await import(`./config.${process.env.NODE_ENV}.js`);
+  const configModule = await import(`./config-${process.env.NODE_ENV}.js`);
   config = configModule.default;
 
-  const dbInfosModule = await import(`./dbinfos.${process.env.NODE_ENV}.js`);
+  const dbInfosModule = await import(`./dbinfos-${process.env.NODE_ENV}.js`);
   dbInfos = dbInfosModule.default;
 } catch (error) {
   logger.error('Error loading the module:', error);

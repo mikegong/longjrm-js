@@ -1,0 +1,10 @@
+{
+    "name": "long-jrm",
+    "version": "0.0.1",
+    "type": "module",
+    "dependencies": {
+        "generic-pool": "^3.9.0",
+        "mysql2": "^3.7.1",
+        "pino-pretty": "^10.3.1"
+    }
+}

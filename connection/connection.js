@@ -18,7 +18,10 @@ class DatabaseConnection {
         const connectionErrorMsg = `Failed to connect to the ${this.databaseType} database ${this.databaseName} at ${this.host}:${this.port}`
         const connectionMsg = `Connected to the ${this.databaseType} database ${this.databaseName} at ${this.host}:${this.port}`
         try {
-            const dbUrl = `${this.databaseType}://${this.user}:${this.password}@${this.host}:${this.port}/${this.databaseName}`;
+            // MongoDB Atlas clusters use mongodb+srv protocol that doesn't support explicit port numbers
+            const port = this.port ? `:${this.port}` : '';
+            const dbUrl = `${this.databaseType}://${this.user}:${this.password}@${this.host}${port}/${this.databaseName}`;
+
             switch (this.databaseType) {
                 case 'mysql':
                     this.client = mysql.createConnection(dbUrl);
@@ -41,7 +44,8 @@ class DatabaseConnection {
                     logger.info(`${connectionMsg}, _connected: ${this.client._connected}, connection process ID: ${this.client.processID}`)
                     break;
                 case 'mongodb':
-                    this.client = new MongoClient(dbUrl, { useNewUrlParser: true });
+                case 'mongodb+srv':
+                    this.client = new MongoClient(dbUrl);
                     await this.client.connect();
                     break;
                 default:
@@ -50,6 +54,7 @@ class DatabaseConnection {
                     });
             }
             this.client.databaseType = this.databaseType;
+            this.client.databaseName = this.databaseName;
             return this.client;
         } catch (error) {
             logger.error(`Connection Error: ${error.message}`);
@@ -72,6 +77,7 @@ class DatabaseConnection {
                         logger.info(`${closeMsg}, _connected: ${this.client._connected}, connection process ID: ${this.client.processID}`)
                         break;
                     case 'mongodb':
+                    case 'mongodb+srv':
                         await this.client.close();
                         break;
                     default:

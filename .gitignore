@@ -1,4 +1,6 @@
 .env
 .git
-dbinfos.*.js
+.vscode
+node_modules
+dbinfos-dev.js
 database/mysql.js

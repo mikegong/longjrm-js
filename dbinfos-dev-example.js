@@ -3,7 +3,7 @@ const dbInfos =
     "mysql-test": {
         "type": "mysql",
         "host": "localhost",
-        "user": "root",
+        "user": "",
         "password": "",
         "port": 3306,
         "database": "test"
@@ -11,9 +11,16 @@ const dbInfos =
     "postgres-test": {
         "type": "postgres",
         "host": "localhost",
-        "user": "postgres",
+        "user": "",
         "password": "",
         "port": 5432,
+        "database": "test"
+    },
+    "mongodb-test": {
+        "type": "mongodb+srv",
+        "host": "",
+        "user": "",
+        "password": "",
         "database": "test"
     }
 }
