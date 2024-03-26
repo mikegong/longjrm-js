@@ -5,11 +5,15 @@ import pg from 'pg';
 import { MongoClient } from 'mongodb';
 import { config, dbInfos } from '../load-config.js';
 
-const mysqlDbName = "mysql-test";
-const postgresDbName = "postgres-test";
-const mongoDbName = "mongodb-test";
-const databaseName = mongoDbName;
-const dbInfo = dbInfos[databaseName];
+const database = {
+    'mysql': 'mysql-test',
+    'postgres': 'postgres-test',
+    'mongodb': 'mongodb-test'
+};
+
+const dbtype = 'postgres';
+
+const dbInfo = dbInfos[database[dbtype]];
 
 const dbConnection = new DatabaseConnection(dbInfo);
 

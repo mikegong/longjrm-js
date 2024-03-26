@@ -3,8 +3,8 @@ Description:
 JRM - This is a generic JSON Relational Mapping library that wrap crud sql statements via database api.
 conn - database connection
 table - the table that is populated
-data - json data including columns and values
-where condition - json data that defines where columns and values
+data - json data including column and value pairs
+where condition - json data that defines where column and value pairs
 */
 
 import logger from "../logger.js";
@@ -16,20 +16,23 @@ class Db {
     }
 
     static checkCurrentKeyword(string) {
-        let foundCurrent = false;
+        /*
+         check if string contains reserved CURRENT SQL keyword below
+            CURRENT DATE, CURRENT_DATE, CURRENT TIMESTAMP, CURRENT_TIMESTAMP
+         1. If CURRENT keyword is found with prefix escape ` and suffix escape ` without escape character \\,
+            then that is keyword and return True
+        */
+       
+        const keywords = ['`CURRENT DATE`', '`CURRENT_DATE`', '`CURRENT TIMESTAMP`', '`CURRENT_TIMESTAMP`'];
         const upperString = string.toUpperCase();
-
-        if (upperString.includes('`CURRENT DATE`') && !upperString.includes('\\`CURRENT DATE\\`')) {
-            foundCurrent = true;
-        } else if (upperString.includes('`CURRENT_DATE`') && !upperString.includes('\\`CURRENT_DATE\\`')) {
-            foundCurrent = true;
-        } else if (upperString.includes('`CURRENT TIMESTAMP`') && !upperString.includes('\\`CURRENT TIMESTAMP\\`')) {
-            foundCurrent = true;
-        } else if (upperString.includes('`CURRENT_TIMESTAMP`') && !upperString.includes('\\`CURRENT_TIMESTAMP\\`')) {
-            foundCurrent = true;
+    
+        for (let keyword of keywords) {
+            if (upperString.includes(keyword) && !upperString.includes(`\\${keyword}\\`)) {
+                return true;
+            }
         }
-
-        return foundCurrent;
+    
+        return false;
     }
 
     static caseInsensitiveReplace(str, search, replacement) {
@@ -38,11 +41,16 @@ class Db {
     }
 
     static unescapeCurrentKeyword(string) {
+        /*
+         unescape reserved CURRENT SQL keyword below, which is quoted by `
+            CURRENT DATE, CURRENT_DATE, CURRENT TIMESTAMP, CURRENT_TIMESTAMP
+        */
 
-        string = Db.caseInsensitiveReplace(string, '`CURRENT DATE`', 'CURRENT DATE');
-        string = Db.caseInsensitiveReplace(string, '`CURRENT_DATE`', 'CURRENT_DATE');
-        string = Db.caseInsensitiveReplace(string, '`CURRENT TIMESTAMP`', 'CURRENT TIMESTAMP');
-        string = Db.caseInsensitiveReplace(string, '`CURRENT_TIMESTAMP`', 'CURRENT_TIMESTAMP');
+        const keywords = ['CURRENT DATE', 'CURRENT_DATE', 'CURRENT TIMESTAMP', 'CURRENT_TIMESTAMP'];
+
+        for (let keyword of keywords) {
+            string = Db.caseInsensitiveReplace(string, `\`${keyword}\``, keyword);
+        }
 
         return string;
     }
@@ -222,7 +230,7 @@ class Db {
 
             where.forEach(condition => {
                 if (condition) {
-                    if (typeof Object.values(condition)[0] === 'string') {
+                    if (typeof Object.values(condition)[0] != 'object') {
                         [arrCond, arrValues, paramIndex] = Db.simpleConditionParser(condition, paramIndex, databaseType);
                     } else if (typeof Object.values(condition)[0] === "object") {
                         const keys = Object.keys(Object.values(condition)[0]);
@@ -309,7 +317,8 @@ class Db {
     }
 
     async query(sql, arrValues=[], collectionName=null) {
-        logger.debug(`Select: ${sql}`);
+        // collection_name is used for MongoDb only
+        logger.debug(`Query: ${sql}`);
         switch (this.conn.databaseType) {
             case 'mysql':
                 return new Promise((resolve, reject) => {
@@ -343,7 +352,7 @@ class Db {
                     const {query, options} = sql;
                     const res = await this.conn.db(this.conn.databaseName).collection(collectionName).find(query, options).toArray();
                     return new Promise((resolve, reject) => {
-                        logger.info(`Query completed successfully with ${res.length} rows returned`)
+                        logger.info(`Query completed successfully with ${res.length} documents returned`)
                         resolve({ data: res, count: res.length });
                     });
                 } catch (error) {

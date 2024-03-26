@@ -1,10 +1,15 @@
 import DatabaseConnectionPool from "../connection/pool.js";
 import Db from "../database/db.js";
 
-const mysqlDbName = "mysql-test";
-const postgresDbName = "postgres-test";
-const mongoDbName = "mongodb-test";
-const databaseName = mysqlDbName;
+const database = {
+    'mysql': 'mysql-test',
+    'postgres': 'postgres-test',
+    'mongodb': 'mongodb-test'
+};
+
+const dbtype = 'mongodb';
+
+const databaseName = database[dbtype];
 
 const dbConnectionPool = new DatabaseConnectionPool();
 
@@ -23,7 +28,7 @@ let result = null;
 try {
     connection = await dbConnectionPool.getConnection(databaseName);
     const db = new Db(connection);
-    if (databaseName === mongoDbName) {
+    if (dbtype === 'mongodb') {
         result = await db.select({
             table: "Listing",
             where: {guestCount: 4, roomCount: 2}

@@ -3,6 +3,8 @@ import pg from 'pg';
 import { MongoClient } from 'mongodb';
 import logger from '../logger.js';
 
+// TODO: dynamically load the appropriate database driver based on the database type
+
 class DatabaseConnection {
     constructor(dbinfo) {
         this.databaseType = dbinfo.type;
@@ -11,12 +13,13 @@ class DatabaseConnection {
         this.user = dbinfo.user;
         this.password = dbinfo.password;
         this.port = dbinfo.port;
+        this.autocommit = dbinfo['autocommit'] || true;
         this.client = null;
     }
 
     async connect() {
-        const connectionErrorMsg = `Failed to connect to the ${this.databaseType} database ${this.databaseName} at ${this.host}:${this.port}`
-        const connectionMsg = `Connected to the ${this.databaseType} database ${this.databaseName} at ${this.host}:${this.port}`
+        const connectionErrorMsg = `Failed to connect to the ${this.databaseType} database '${this.databaseName}' at ${this.host}:${this.port}`
+        const connectionMsg = `Connected to the ${this.databaseType} database '${this.databaseName}' at ${this.host}:${this.port}`
         try {
             // MongoDB Atlas clusters use mongodb+srv protocol that doesn't support explicit port numbers
             const port = this.port ? `:${this.port}` : '';

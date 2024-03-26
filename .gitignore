@@ -1,6 +1,9 @@
 .env
 .git
 .vscode
+longjrm.log
 node_modules
-dbinfos-dev.js
+env/dbinfos-dev.js
 database/mysql.js
+tests/tempCodeRunnerFile.js
+```
