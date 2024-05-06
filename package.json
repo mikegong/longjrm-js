@@ -1,10 +1,31 @@
 {
-    "name": "longjrm",
-    "version": "0.0.2",
-    "type": "module",
-    "dependencies": {
-        "generic-pool": "^3.9.0",
-        "mysql2": "^3.7.1",
-        "pino-pretty": "^10.3.1"
-    }
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests/concurrent.queries.test.js",
+    "simulate-crash": "node tests/simulate.crash.by.concurrent.queries.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "generic-pool": "^3.9.0",
+    "mongodb": "^6.5.0",
+    "mysql2": "^3.7.1",
+    "pg": "^8.11.5",
+    "pino": "^8.20.0",
+    "pino-pretty": "^10.3.1"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "description": "",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
 }

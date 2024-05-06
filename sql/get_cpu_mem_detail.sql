@@ -1,0 +1,20 @@
+SELECT
+  substr(CREATE_TS,1,16) as TIMESTAMP,
+  SERVER_NAME,
+  VMSTAT_R,
+  VMSTAT_Q,
+  VMSTAT_PI,
+  VMSTAT_PO,
+  VMSTAT_US,
+  VMSTAT_SY,
+  VMSTAT_ID,
+  VMSTAT_WA,
+  VMSTAT_PC,
+  VMSTAT_EC,
+  CPU_LOAD_SHORT,
+  CPU_LOAD_MEDIUM,
+  CPU_LOAD_LONG
+FROM
+  PCM.DB_SERVER_VMSTAT_USAGE
+  where server_id='$server_id$'
+  AND substr(CREATE_TS,1,16)='$time_point$';

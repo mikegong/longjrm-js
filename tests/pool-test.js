@@ -31,7 +31,7 @@ try {
     if (dbtype === 'mongodb') {
         result = await db.select({
             table: "Listing",
-            where: {guestCount: 4, roomCount: 2}
+            where: {title: "Washington Treehouse"}
         });
     } else {
         result = await db.select({
