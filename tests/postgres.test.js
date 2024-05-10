@@ -1,10 +1,10 @@
 import 'dotenv/config';
-import DatabaseConnection from '../connection/connection.js'; 
-import DbPostgres from '../database/postgres.js'; 
-import { dbInfos } from '../load-config.js'; 
+import DatabaseConnection from '../connection/connection.js'; // Adjust path as needed
+import DbPostgres from '../database/postgres.js'; // Ensure this path is correct
+import { dbInfos } from '../load-config.js'; // Adjust path as needed
 
 async function main() {
-    const databaseName = 'postgres-test'; 
+    const databaseName = 'postgres-test'; // Use the appropriate config name for PostgreSQL
     const dbInfo = dbInfos[databaseName];
 
     const dbConnection = new DatabaseConnection(dbInfo);
