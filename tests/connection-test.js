@@ -11,7 +11,7 @@ const database = {
     'mongodb': 'mongodb-test'
 };
 
-const dbtype = 'mongodb';
+const dbtype = 'postgres';
 
 const dbInfo = dbInfos[database[dbtype]];
 
@@ -19,7 +19,7 @@ const dbConnection = new DatabaseConnection(dbInfo);
 
 try {
     const conn = await dbConnection.connect();
-    if (conn.databaseType === 'mongodb+srv') {
+    if (conn.databaseType = 'mongodb+srv') {
         const database = conn.db('test')
         const listings = database.collection('Listing');
         const query = { title: 'Nice Cottage' };
