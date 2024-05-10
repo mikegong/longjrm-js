@@ -11,7 +11,7 @@ const database = {
     'mongodb': 'mongodb-test'
 };
 
-const dbtype = 'postgres';
+const dbtype = 'mongodb';
 
 const dbInfo = dbInfos[database[dbtype]];
 

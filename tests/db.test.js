@@ -9,7 +9,7 @@ async function main() {
         'postgres': 'postgres-test',
         'mongodb': 'mongodb-test'               
     };  
-    const dbtype = 'mongodb'; // Set the DB type you want to test
+    const dbtype = 'postgres'; // Set the DB type you want to test
     const dbInfo = dbInfos[database[dbtype]];                   
 
     const dbConnection = new DatabaseConnection(dbInfo);        
