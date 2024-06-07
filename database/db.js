@@ -60,6 +60,11 @@ class Db {
     }
 
     static simpleConditionParser(condition, paramIndex, databaseType = '') {
+        // Simple condition format is as below，
+        // input: {column: value}
+        // output: [arrCond, arrValues, paramIndex]
+        // Please be aware that the condition object here contains only one key/value pair
+
         const column = Object.keys(condition)[0];
         const value = Object.values(condition)[0];
         let arrCond = [];
@@ -85,6 +90,11 @@ class Db {
     }
     
     static regularConditionParser(condition, paramIndex, databaseType = '') {
+        // Regular condition format is as below，
+        // input: {column: {operator1: value1, operator2: value2}}
+        // output: [arrCond, arrValues, paramIndex]
+        // Please be aware that the object of condition value here supports multiple key/value pairs(operators)
+
         const column = Object.keys(condition)[0];
         const condObj = Object.values(condition)[0];
         let arrCond = [];
@@ -110,6 +120,10 @@ class Db {
     }
     
     static comprehensiveConditionParser(condition, paramIndex, databaseType = '') {
+        // Comprehensive condition format is as below，
+        // {column: {"operator": ">", "value": value, "placeholder": "N"}}
+        // Please be aware that the object of condition value contains only one filter operator
+
         const column = Object.keys(condition)[0];
         const condObj = Object.values(condition)[0];
         const operator = condObj['operator'];
@@ -170,6 +184,22 @@ class Db {
     }
     
     static whereParser(where, databaseType = '', startIndex = 0) {
+        /*
+        where is an array of JSON objects that define query conditions.
+            [{condition1}, {condition2}]
+        Conditions can be simple, regular, comprehensive, or logical operators.
+        1. Simple condition 
+            {column: value}, which is equivalent to regular condition {column: {"=": value}} and comprehensive condition {column: {"operator": "=", "value": value, "placeholder": "Y"}}
+        2. Regular condition 
+            {column: {operator1: value1, operator2: value2}}
+        3. Comprehensive condition 
+            {column: {"operator": ">", "value": value, "placeholder": "N"}}
+        4. Logical operators
+            [$operator: [{column1: value1}, {column2: value2}]]
+        
+            Note: placeholder is optional and default to Y. If placeholder is N, then the value will be put in the query statement directly without using placeholder.
+        */
+
         let arrCond = [];
         let arrValues = [];
         let parsedCond = [];
