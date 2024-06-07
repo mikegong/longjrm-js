@@ -283,17 +283,22 @@ class Db {
     
     insertConstructor({ table, data }) {
         const columns = Object.keys(data);
+        if (columns.length === 0) {
+            throw new Error('Invalid data');
+        }
+    
         const values = Object.values(data);
         const placeholders = columns.map((_, index) => Db.formatPlaceholder(index + 1, this.databaseType)).join(', ');
         let insertQuery = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`;
     
         // Modify for PostgreSQL
         if (this.databaseType && this.databaseType.includes('postgres')) {
-                insertQuery += ` RETURNING *`;
-            }
+            insertQuery += ` RETURNING *`;
+        }
+    
         return [insertQuery, values];
     }
-
+    
     async update({ table, data, where, options = {} }) {
         try {
             const [updateQuery, arrValues] = this.updateConstructor({ table, data, where, options });
@@ -306,15 +311,21 @@ class Db {
         }
     }    
 
-    updateConstructor({ table, data, where }) {    
+    updateConstructor({ table, data, where }) {
         const columns = Object.keys(data);
+        if (columns.length === 0) {
+            throw new Error('Invalid data');
+        }
+    
         const values = Object.values(data);
         const setClause = columns.map((col, idx) => `${col} = ${Db.formatPlaceholder(idx + 1, this.databaseType)}`).join(', ');
+    
         const [whereClause, whereValues] = Db.whereParser(where, this.databaseType, values.length);
         const updateQuery = `UPDATE ${table} SET ${setClause}${whereClause}`;
         const combinedValues = [...values, ...whereValues];
+    
         return [updateQuery, combinedValues];
-    }
+    }    
     
     async delete({ table, where, options = {} }) {
         try {
@@ -328,11 +339,11 @@ class Db {
         }
     }
     
-    deleteConstructor({ table, where }) {  
-        const [strWhere, whereValues] = Db.whereParser(where, this.databaseType);
-        const deleteQuery = `DELETE FROM ${table}${strWhere}`;
-        return [deleteQuery, whereValues]; 
-    }
+    deleteConstructor({ table, where }) {
+        const [whereClause, whereValues] = Db.whereParser(where, this.databaseType);
+        const deleteQuery = `DELETE FROM ${table}${whereClause}`;
+        return [deleteQuery, whereValues];
+    }    
 
     async query(sql, arrValues = [], collectionName = null) {
         logger.debug(`Query: ${sql}`);
