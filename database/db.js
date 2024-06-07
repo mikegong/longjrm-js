@@ -13,8 +13,13 @@ import { config } from '../load-config.js';
 class Db {
     constructor(conn) {
         this.conn = conn;
+        this.databaseType = this.conn.type;
     }
 
+    static formatPlaceholder(paramIndex, databaseType) {
+        return ['postgres', 'postgresql'].includes(databaseType) ? `$${paramIndex}` : '?';
+    }
+    
     static checkCurrentKeyword(string) {
         /*
          check if string contains reserved CURRENT SQL keyword below
@@ -31,7 +36,7 @@ class Db {
                 return true;
             }
         }
-
+    
         return false;
     }
 
@@ -56,16 +61,11 @@ class Db {
     }
 
     static simpleConditionParser(condition, paramIndex, databaseType = '') {
-        // Simple condition format is as below，
-        // input: {column: value}
-        // output: [arrCond, arrValues, paramIndex]
-        // Please be aware that the condition object here contains only one key/value pair
-
         const column = Object.keys(condition)[0];
         const value = Object.values(condition)[0];
         let arrCond = [];
         let arrValues = [];
-
+    
         if (typeof value === 'string') {
             // escape single quote
             const cleanValue = value.replace("''", "'");
@@ -73,173 +73,125 @@ class Db {
                 // CURRENT keyword cannot be put in placeholder
                 arrCond.push(`${column} = ${Db.unescapeCurrentKeyword(cleanValue)}`);
             } else {
-                // Y is default for placeholder
                 paramIndex++;
                 arrValues.push(cleanValue);
-                if (['postgres', 'postgresql'].includes(databaseType)) {
-                    // postgresql uses $1, $2, etc. for placeholder
-                    arrCond.push(`${column} = $${paramIndex}`);
-                } else {
-                    arrCond.push(`${column} = ?`);
-                }
+                arrCond.push(`${column} = ${Db.formatPlaceholder(paramIndex, databaseType)}`);
             }
         } else {
-            // Y is default for placeholder
             paramIndex++;
             arrValues.push(value);
-            if (['postgres', 'postgresql'].includes(databaseType)) {
-                // postgresql uses $1, $2, etc. for placeholder
-                arrCond.push(`${column} = $${paramIndex}`);
-            } else {
-                arrCond.push(`${column} = ?`);
-            }
+            arrCond.push(`${column} = ${Db.formatPlaceholder(paramIndex, databaseType)}`);
         }
-
         return [arrCond, arrValues, paramIndex];
     }
-
+    
     static regularConditionParser(condition, paramIndex, databaseType = '') {
-        // Regular condition format is as below，
-        // input: {column: {operator1: value1, operator2: value2}}
-        // output: [arrCond, arrValues, paramIndex]
-        // Please be aware that the object of condition value here supports multiple key/value pairs(operators)
-
         const column = Object.keys(condition)[0];
         const condObj = Object.values(condition)[0];
         let arrCond = [];
         let arrValues = [];
-
+    
         for (const [operator, value] of Object.entries(condObj)) {
             if (typeof value === 'string') {
-                // escape single quote
                 const cleanValue = value.replace("''", "'");
                 if (Db.checkCurrentKeyword(cleanValue)) {
-                    // CURRENT keyword cannot be put in placeholder
                     arrCond.push(`${column} ${operator} ${Db.unescapeCurrentKeyword(cleanValue)}`);
                 } else {
-                    // Y is default for placeholder
                     paramIndex++;
                     arrValues.push(cleanValue);
-                    if (['postgres', 'postgresql'].includes(databaseType)) {
-                        // postgresql uses $1, $2, etc. for placeholder
-                        arrCond.push(`${column} ${operator} $${paramIndex}`);
-                    } else {
-                        arrCond.push(`${column} ${operator} ?`);
-                    }
+                    arrCond.push(`${column} ${operator} ${Db.formatPlaceholder(paramIndex, databaseType)}`);
                 }
             } else {
-                // Y is default for placeholder
                 paramIndex++;
                 arrValues.push(value);
-                if (['postgres', 'postgresql'].includes(databaseType)) {
-                    // postgresql uses $1, $2, etc. for placeholder
-                    arrCond.push(`${column} ${operator} $${paramIndex}`);
-                } else {
-                    arrCond.push(`${column} ${operator} ?`);
-                }
+                arrCond.push(`${column} ${operator} ${Db.formatPlaceholder(paramIndex, databaseType)}`);
             }
         }
-
         return [arrCond, arrValues, paramIndex];
     }
-
+    
     static comprehensiveConditionParser(condition, paramIndex, databaseType = '') {
-        // Comprehensive condition format is as below，
-        // {column: {"operator": ">", "value": value, "placeholder": "N"}}
-        // Please be aware that the object of condition value contains only one filter operator
-
         const column = Object.keys(condition)[0];
         const condObj = Object.values(condition)[0];
         const operator = condObj['operator'];
         const value = condObj['value'];
         let arrCond = [];
         let arrValues = [];
-
+    
         if (typeof value === 'string') {
-            // escape single quote
             const cleanValue = value.replace("''", "'");
             if (Db.checkCurrentKeyword(cleanValue)) {
-                // CURRENT keyword cannot be put in placeholder
                 arrCond.push(`${column} ${operator} ${Db.unescapeCurrentKeyword(cleanValue)}`);
             } else {
                 if (condObj['placeholder'] === 'N') {
                     arrCond.push(`${column} ${operator} '${cleanValue}'`);
                 } else {
-                    // Y is default for placeholder
                     paramIndex++;
                     arrValues.push(cleanValue);
-                    if (['postgres', 'postgresql'].includes(databaseType)) {
-                        // postgresql uses $1, $2, etc. for placeholder
-                        arrCond.push(`${column} ${operator} $${paramIndex}`);
-                    } else {
-                        arrCond.push(`${column} ${operator} ?`);
-                    }
+                    arrCond.push(`${column} ${operator} ${Db.formatPlaceholder(paramIndex, databaseType)}`);
                 }
             }
         } else {
             if (condObj['placeholder'] === 'N') {
                 arrCond.push(`${column} ${operator} ${value}`);
             } else {
-                // Y is default for placeholder
                 paramIndex++;
                 arrValues.push(value);
-                if (['postgres', 'postgresql'].includes(databaseType)) {
-                    // postgresql uses $1, $2, etc. for placeholder
-                    arrCond.push(`${column} ${operator} $${paramIndex}`);
-                } else {
-                    arrCond.push(`${column} ${operator} ?`);
-                }
+                arrCond.push(`${column} ${operator} ${Db.formatPlaceholder(paramIndex, databaseType)}`);
             }
         }
-
         return [arrCond, arrValues, paramIndex];
     }
-
+    
     static operatorConditionParser(condition, paramIndex, databaseType = '') {
-
+        const operator = Object.keys(condition)[0];
+        const conditions = Object.values(condition)[0];
+        let arrCond = [];
+        let arrValues = [];
+    
+        const logicalOperators = {
+            '$and': 'AND',
+            '$or': 'OR',
+            '$not': 'NOT'
+        };
+    
+        if (!logicalOperators[operator]) {
+            throw new Error(`Unsupported logical operator: ${operator}`);
+        }
+    
+        conditions.forEach(subCondition => {
+            const [subCond, subValues, newParamIndex] = Db.whereParser([subCondition], databaseType, paramIndex);
+            arrCond.push(`(${subCond})`);
+            arrValues.push(...subValues);
+            paramIndex = newParamIndex;
+        });
+    
+        const combinedCond = arrCond.join(` ${logicalOperators[operator]} `);
+        return [combinedCond, arrValues, paramIndex];
     }
-
-    static whereParser(where, databaseType = '') {
-        /*
-        where is an array of JSON objects that define query conditions.
-            [{condition1}, {condition2}]
-        Conditions can be simple, regular, comprehensive, or logical operators.
-        1. Simple condition 
-            {column: value}, which is equivalent to regular condition {column: {"=": value}} and comprehensive condition {column: {"operator": "=", "value": value, "placeholder": "Y"}}
-        2. Regular condition 
-            {column: {operator1: value1, operator2: value2}}
-        3. Comprehensive condition 
-            {column: {"operator": ">", "value": value, "placeholder": "N"}}
-        4. Logical operators
-            [$operator: [{column1: value1}, {column2: value2}]]
-        
-            Note: placeholder is optional and default to Y. If placeholder is N, then the value will be put in the query statement directly without using placeholder.
-        */
-
+    
+    static whereParser(where, databaseType = '', startIndex = 0) {
         let arrCond = [];
         let arrValues = [];
         let parsedCond = [];
         let parsedValues = [];
-        let paramIndex = 0;
-
+        let paramIndex = startIndex;
+    
         try {
             if (where.length === 0) {
                 logger.debug('Where condition is empty');
                 return ['', []];
             }
-
+    
             where.forEach(condition => {
                 if (condition) {
                     if (typeof Object.values(condition)[0] != 'object') {
                         [arrCond, arrValues, paramIndex] = Db.simpleConditionParser(condition, paramIndex, databaseType);
                     } else if (typeof Object.values(condition)[0] === "object") {
                         const keys = Object.keys(Object.values(condition)[0]);
-                        if (keys.includes("operator")
-                            && keys.includes("value")
-                            && keys.includes("placeholder")) {
+                        if (keys.includes("operator") && keys.includes("value") && keys.includes("placeholder")) {
                             [arrCond, arrValues, paramIndex] = Db.comprehensiveConditionParser(condition, paramIndex, databaseType);
-                        }
-                        else {
+                        } else {
                             [arrCond, arrValues, paramIndex] = Db.regularConditionParser(condition, paramIndex, databaseType);
                         }
                     } else if (Object.keys(condition)[0].startsWith('$') && Object.values(condition)[0].length > 0) {
@@ -248,17 +200,19 @@ class Db {
                         throw new Error('Invalid where condition');
                     }
                     parsedCond.push(...arrCond);
-                    arrValues !== null ? parsedValues.push(...arrValues) : null;
+                    parsedValues.push(...arrValues);
                 }
             });
+    
         } catch (error) {
             logger.error(error);
             throw error;
         }
-
-        return [' where ' + parsedCond.join(' and '), parsedValues];
+    
+        const whereClause = parsedCond.length > 0 ? ' WHERE ' + parsedCond.join(' AND ') : '';
+        return [whereClause, parsedValues, paramIndex];
     }
-
+    
     async select({ table, columns = ["*"], where, options = { "limit": config.DATA_FETCH_LIMIT, "orderBy": [] } }) {
         // order by format: [column1 asc, column2 desc]
         try {
@@ -286,16 +240,80 @@ class Db {
         return [selectQuery, arrValues];
     }
 
-    async query(sql, arrValues = [], collectionName = null) {
-        logger.debug(`Query: ${sql}`);
-        supportedDatabaseType = ['mysql', 'postgres', 'postgresql', 'mongodb', 'mongodb+srv'];
-        if (!supportedDatabaseType.includes(this.conn.databaseType)) {
-            return new Promise((resolve, reject) => {
-                reject(new Error(`Unsupported database type: ${this.conn.databaseType}`));
-            });
+    mongoSelectConstructor({ columns = ["*"], where, options = { "limit": config.DATA_FETCH_LIMIT, "orderBy": [] } }) {
+        let projection = {};
+        if (!(columns.length === 1 && columns[0] === '*')) {
+            projection = columns.reduce((obj, item) => {
+                obj[item] = 1;
+                return obj;
+            }, {})
         }
+        let selectQuery = {
+            query: where,
+            options: {
+                limit: options.limit,
+                sort: options.orderBy.reduce((obj, item) => {
+                    const [column, order] = item.split(' ');
+                    obj[column] = order === 'desc' ? -1 : 1;  // default to asc
+                    return obj;
+                }, {}),
+                projection: projection,
+            }
+        };
+        return selectQuery;
     }
 
+    async query(sql, arrValues=[], collectionName=null) {
+        // collection_name is used for MongoDb only
+        logger.debug(`Query: ${sql}`);
+        switch (this.conn.databaseType) {
+            case 'mysql':
+                return new Promise((resolve, reject) => {
+                    // execute will internally call prepare and query while query will not call prepare
+                    this.conn.execute(sql, arrValues, (error, results, fields) => {
+                        if (error) {
+                            reject(error);
+                        } else {
+                            logger.info(`Select completed successfully with ${results.length} rows returned`)
+                            resolve({ data: results, columns: fields, count: results.length });
+                        }
+                    });
+                });
+            case 'postgres':
+            case 'postgresql':
+                try {
+                    // prepare is not recommended for pg library
+                    const res = await this.conn.query(sql, arrValues);
+                    return new Promise((resolve, reject) => {
+                        logger.info(`Select completed successfully with ${res.rowCount} rows returned`)
+                        resolve({ data: res.rows, columns: res.fields, count: res.rowCount });
+                    });
+                } catch (error) {
+                    return new Promise((resolve, reject) => {
+                        reject(error);
+                    });
+                }
+            case 'mongodb':
+            case 'mongodb+srv':
+                try {
+                    const {query, options} = sql;
+                    const res = await this.conn.db(this.conn.databaseName).collection(collectionName).find(query, options).toArray();
+                    return new Promise((resolve, reject) => {
+                        logger.info(`Query completed successfully with ${res.length} documents returned`)
+                        resolve({ data: res, count: res.length });
+                    });
+                } catch (error) {
+                    return new Promise((resolve, reject) => {
+                        reject(error);
+                    });
+
+                }
+            default:
+                return new Promise((resolve, reject) => {
+                    reject(new Error(`Unsupported database type: ${this.conn.databaseType}`));
+                });
+        }
+    }   
 }
 
 export default Db;
