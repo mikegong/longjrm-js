@@ -307,19 +307,11 @@ class Db {
     }    
 
     updateConstructor({ table, data, where }) {    
-        // Construct the SET clause
         const columns = Object.keys(data);
         const values = Object.values(data);
         const setClause = columns.map((col, idx) => `${col} = ${Db.formatPlaceholder(idx + 1, this.databaseType)}`).join(', ');
-    
-        // Parse the WHERE clause
-        const startIndex = values.length;
-        const [whereClause, whereValues] = Db.whereParser(where, this.databaseType, startIndex);
-    
-        // Construct the full UPDATE query
+        const [whereClause, whereValues] = Db.whereParser(where, this.databaseType, values.length);
         const updateQuery = `UPDATE ${table} SET ${setClause}${whereClause}`;
-    
-        // Combine SET values and WHERE values
         const combinedValues = [...values, ...whereValues];
         return [updateQuery, combinedValues];
     }
