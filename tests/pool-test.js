@@ -1,10 +1,11 @@
 import DatabaseConnectionPool from "../connection/pool.js";
-import Db from "../database/db.js";
+import DbFactory from "../database/dbFactory.js";
 
 const database = {
     'mysql': 'mysql-test',
     'postgres': 'postgres-test',
-    'mongodb': 'mongodb-test'
+    'mongodb': 'mongodb-test',
+    'mongolocal': 'mongodb-local'
 };
 
 const dbtype = 'mongodb';
@@ -27,8 +28,8 @@ let result = null;
 
 try {
     connection = await dbConnectionPool.getConnection(databaseName);
-    const db = new Db(connection);
-    if (dbtype === 'mongodb') {
+    const db = await new DbFactory(connection).createDb();
+    if (dbtype === 'mongodb' || dbtype === 'mongolocal') {
         result = await db.select({
             table: "Listing",
             where: {guestCount: 4, roomCount: 2}
