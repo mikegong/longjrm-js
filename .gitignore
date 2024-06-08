@@ -4,6 +4,5 @@
 longjrm.log
 node_modules
 env/dbinfos-dev.js
-database/mysql.js
 tests/tempCodeRunnerFile.js
 ```

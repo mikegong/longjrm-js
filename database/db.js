@@ -22,16 +22,16 @@ class Db {
          1. If CURRENT keyword is found with prefix escape ` and suffix escape ` without escape character \\,
             then that is keyword and return True
         */
-       
+
         const keywords = ['`CURRENT DATE`', '`CURRENT_DATE`', '`CURRENT TIMESTAMP`', '`CURRENT_TIMESTAMP`'];
         const upperString = string.toUpperCase();
-    
+
         for (let keyword of keywords) {
             if (upperString.includes(keyword) && !upperString.includes(`\\${keyword}\\`)) {
                 return true;
             }
         }
-    
+
         return false;
     }
 
@@ -262,15 +262,8 @@ class Db {
     async select({ table, columns = ["*"], where, options = { "limit": config.DATA_FETCH_LIMIT, "orderBy": [] } }) {
         // order by format: [column1 asc, column2 desc]
         try {
-            if (this.conn.databaseType === 'mongodb' || this.conn.databaseType === 'mongodb+srv') {
-                const findQuery = this.mongoSelectConstructor({ columns, where, options });
-                let res = await this.query(findQuery, [], table);
-                res.columns = columns;
-                return res;
-            } else {
-                const [selectQuery, arrValues] = this.selectConstructor({ table, columns, where, options })
-                return await this.query(selectQuery, arrValues);
-            }
+            const [selectQuery, arrValues] = this.selectConstructor({ table, columns, where, options })
+            return await this.query(selectQuery, arrValues);
         }
         catch (error) {
             return new Promise((resolve, reject) => {
@@ -293,78 +286,13 @@ class Db {
         return [selectQuery, arrValues];
     }
 
-    mongoSelectConstructor({ columns = ["*"], where, options = { "limit": config.DATA_FETCH_LIMIT, "orderBy": [] } }) {
-        let projection = {};
-        if (!(columns.length === 1 && columns[0] === '*')) {
-            projection = columns.reduce((obj, item) => {
-                obj[item] = 1;
-                return obj;
-            }, {})
-        }
-        let selectQuery = {
-            query: where,
-            options: {
-                limit: options.limit,
-                sort: options.orderBy.reduce((obj, item) => {
-                    const [column, order] = item.split(' ');
-                    obj[column] = order === 'desc' ? -1 : 1;  // default to asc
-                    return obj;
-                }, {}),
-                projection: projection,
-            }
-        };
-        return selectQuery;
-    }
-
-    async query(sql, arrValues=[], collectionName=null) {
-        // collection_name is used for MongoDb only
+    async query(sql, arrValues = [], collectionName = null) {
         logger.debug(`Query: ${sql}`);
-        switch (this.conn.databaseType) {
-            case 'mysql':
-                return new Promise((resolve, reject) => {
-                    // execute will internally call prepare and query while query will not call prepare
-                    this.conn.execute(sql, arrValues, (error, results, fields) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            logger.info(`Select completed successfully with ${results.length} rows returned`)
-                            resolve({ data: results, columns: fields, count: results.length });
-                        }
-                    });
-                });
-            case 'postgres':
-            case 'postgresql':
-                try {
-                    // prepare is not recommended for pg library
-                    const res = await this.conn.query(sql, arrValues);
-                    return new Promise((resolve, reject) => {
-                        logger.info(`Select completed successfully with ${res.rowCount} rows returned`)
-                        resolve({ data: res.rows, columns: res.fields, count: res.rowCount });
-                    });
-                } catch (error) {
-                    return new Promise((resolve, reject) => {
-                        reject(error);
-                    });
-                }
-            case 'mongodb':
-            case 'mongodb+srv':
-                try {
-                    const {query, options} = sql;
-                    const res = await this.conn.db(this.conn.databaseName).collection(collectionName).find(query, options).toArray();
-                    return new Promise((resolve, reject) => {
-                        logger.info(`Query completed successfully with ${res.length} documents returned`)
-                        resolve({ data: res, count: res.length });
-                    });
-                } catch (error) {
-                    return new Promise((resolve, reject) => {
-                        reject(error);
-                    });
-
-                }
-            default:
-                return new Promise((resolve, reject) => {
-                    reject(new Error(`Unsupported database type: ${this.conn.databaseType}`));
-                });
+        supportedDatabaseType = ['mysql', 'postgres', 'postgresql', 'mongodb', 'mongodb+srv'];
+        if (!supportedDatabaseType.includes(this.conn.databaseType)) {
+            return new Promise((resolve, reject) => {
+                reject(new Error(`Unsupported database type: ${this.conn.databaseType}`));
+            });
         }
     }
 
