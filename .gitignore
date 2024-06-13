@@ -5,4 +5,5 @@ longjrm.log
 node_modules
 env/dbinfos-dev.js
 tests/tempCodeRunnerFile.js
+.DS_Store
 ```
