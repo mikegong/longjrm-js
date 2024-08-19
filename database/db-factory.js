@@ -5,7 +5,8 @@ const dbModuleMap = {
     'postgresql': 'postgres.js',
     'mysql': 'mysql.js',
     'mongodb': 'mongodb.js',
-    'mongodb+srv': 'mongodb.js'
+    'mongodb+srv': 'mongodb.js',
+    'odbc': 'odbc.js'
 }
 
 class DbFactory {
@@ -15,7 +16,12 @@ class DbFactory {
     }
 
     async createDb() {
-        const dbModule = await import(`./${dbModuleMap[this.conn.databaseType]}`);
+        let dbModule;
+        if (dbModuleMap[this.conn.databaseType]) {
+            dbModule = await import(`./${dbModuleMap[this.conn.databaseType]}`);
+        } else {
+            dbModule = Db;
+        }
         const DbClass = dbModule.default;
         if (this.conn.databaseType in dbModuleMap) {
             return new DbClass(this.conn);

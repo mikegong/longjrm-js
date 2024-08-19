@@ -288,7 +288,7 @@ class Db {
 
     async query(sql, arrValues = [], collectionName = null) {
         logger.debug(`Query: ${sql}`);
-        supportedDatabaseType = ['mysql', 'postgres', 'postgresql', 'mongodb', 'mongodb+srv'];
+        const supportedDatabaseType = ['mysql', 'postgres', 'postgresql', 'mongodb', 'mongodb+srv', 'odbc'];
         if (!supportedDatabaseType.includes(this.conn.databaseType)) {
             return new Promise((resolve, reject) => {
                 reject(new Error(`Unsupported database type: ${this.conn.databaseType}`));

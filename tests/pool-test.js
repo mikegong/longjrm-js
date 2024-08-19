@@ -1,14 +1,15 @@
 import DatabaseConnectionPool from "../connection/pool.js";
-import DbFactory from "../database/dbFactory.js";
+import DbFactory from "../database/db-factory.js";
 
 const database = {
     'mysql': 'mysql-test',
     'postgres': 'postgres-test',
     'mongodb': 'mongodb-test',
-    'mongolocal': 'mongodb-local'
+    'mongolocal': 'mongodb-local',
+    'odbc': 'odbc-test'
 };
 
-const dbtype = 'mongodb';
+const dbtype = 'odbc';
 
 const databaseName = database[dbtype];
 

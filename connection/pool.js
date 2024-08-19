@@ -1,5 +1,5 @@
 import { createPool } from 'generic-pool';
-import DatabaseConnection from './connection.js';
+import { createDatabaseConnection } from '../connection/conn-factory.js';
 import logger from '../logger.js';
 import { config, dbInfos } from '../load-config.js';
 
@@ -29,7 +29,7 @@ class DatabaseConnectionPool {
     try {
       const factory = {
         create: async () => {
-          const dbConnection = new DatabaseConnection(dbInfo);
+          const dbConnection = new createDatabaseConnection(dbInfo);
           return await dbConnection.connect();
         },
         destroy: async (connection) => {
