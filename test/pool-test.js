@@ -53,9 +53,11 @@ try {
                 }
             }]
         });
+        const columns = await db.getColumns('TEST', 'sample');
+        console.log('Columns:', columns);
     }
 
-    console.log(result.data);
+    // console.log(result.data);
     await dbConnectionPool.releaseConnection(databaseName, connection);
     console.log('Connection released');
 } catch (error) {

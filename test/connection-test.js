@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { createDatabaseConnection } from '../connection/conn-factory.js';
-import { config, dbInfos } from '../load-config.js';
+import { config, dbInfos } from '../env/load-config.js';
 
 const database = {
     'mysql': 'mysql-test',

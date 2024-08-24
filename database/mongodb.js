@@ -1,6 +1,6 @@
 import Db from './db.js';
 import logger from '../logger.js';
-import { config } from '../load-config.js';
+import { config } from '../env/load-config.js';
 
 
 class MongoDb extends Db {

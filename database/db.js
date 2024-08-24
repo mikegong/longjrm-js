@@ -8,7 +8,7 @@ where condition - json data that defines where column and value pairs
 */
 
 import logger from "../logger.js";
-import { config } from '../load-config.js';
+import { config } from '../env/load-config.js';
 
 class Db {
     constructor(conn) {

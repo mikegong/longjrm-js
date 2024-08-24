@@ -28,6 +28,28 @@ class OdbcDb extends Db {
             });
         }
     }
+
+    async getColumns(schemaName, tableName) {
+    try {
+        // Retrieve column definitions
+        const result = await this.conn.columns(null, schemaName, tableName, null);
+
+        const columns = []
+        result.forEach(row => {
+            columns.push(row);
+        }); 
+
+        const columnsObject = columns.reduce((obj, item) => {
+            obj[item.COLUMN_NAME] = item;
+            return obj;
+          }, {});
+        return columnsObject;
+    } catch (error) {
+        console.error('Error retrieving column definitions:', error);
+        throw error;
+    }
+}
+    
 }
 
 export default OdbcDb;

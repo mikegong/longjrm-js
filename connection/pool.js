@@ -1,7 +1,7 @@
 import { createPool } from 'generic-pool';
 import { createDatabaseConnection } from '../connection/conn-factory.js';
 import logger from '../logger.js';
-import { config, dbInfos } from '../load-config.js';
+import { config, dbInfos } from '../env/load-config.js';
 
 class DatabaseConnectionPool {
   constructor() {
@@ -48,10 +48,8 @@ class DatabaseConnectionPool {
   async startPool(databaseName) {
     try {
       await this.pools[databaseName].start();
-      console.log("pool started");
       logger.info(`Started ${databaseName} database connection pool`);
     } catch (error) {
-      console.log("pool started failed");
       logger.error(`Failed to start ${databaseName} database connection pool: ${error.message}`);
       throw error;
     }

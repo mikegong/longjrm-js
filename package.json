@@ -1,7 +1,23 @@
 {
     "name": "longjrm",
     "version": "0.0.2",
+    "description": "LongJRM - A JSON Relationship Mapping library for bridge program with database.",
+    "main": "index.js",
     "type": "module",
+    "scripts": {
+        "test": "mocha ./test/*.js"
+    },
+    "repository": "https://github.com/mikegong/longjrm-js",
+    "keywords": [
+        "LongJRM",
+        "JRM",
+        "JSON",
+        "ORM",
+        "database",
+        "relationship"
+    ],
+    "author": "Mike Gong",
+    "license": "MIT",
     "dependencies": {
         "dot-env": "^0.0.1",
         "dotenv": "^16.4.5",
@@ -12,5 +28,8 @@
         "pg": "^8.11.5",
         "pino": "^9.1.0",
         "pino-pretty": "^10.3.1"
+    },
+    "devDependencies": {
+        "mocha": "^10.7.3"
     }
 }
